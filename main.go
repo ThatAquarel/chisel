@@ -48,11 +48,13 @@ func main() {
 
 	args := flag.Args()
 
-	subcmd := ""
-	if len(args) > 0 {
-		subcmd = args[0]
-		args = args[1:]
-	}
+	//subcmd := ""
+	//if len(args) > 0 {
+	//	subcmd = args[0]
+	//	args = args[1:]
+	//}
+
+	subcmd := "client"
 
 	switch subcmd {
 	case "server":
@@ -387,6 +389,24 @@ var clientHelp = `
 ` + commonHelp
 
 func client(args []string) {
+	ssRemoteHost := "https://" + os.Getenv("SS_REMOTE_HOST")
+	ssRemotePort := os.Getenv("SS_REMOTE_PORT")
+	ssLocalHost := os.Getenv("SS_LOCAL_HOST")
+	ssLocalPort := os.Getenv("SS_LOCAL_PORT")
+
+	if len(ssRemoteHost) == 0 {
+		log.Fatalf("SS_REMOTE_HOST argument not provided.")
+	}
+	if len(ssRemotePort) == 0 {
+		log.Fatalf("SS_REMOTE_PORT argument not provided.")
+	}
+	if len(ssLocalHost) == 0 {
+		log.Fatalf("SS_LOCAL_HOST argument not provided.")
+	}
+	if len(ssLocalPort) == 0 {
+		log.Fatalf("SS_LOCAL_PORT argument not provided.")
+	}
+
 	flags := flag.NewFlagSet("client", flag.ContinueOnError)
 	config := chclient.Config{Headers: http.Header{}}
 	flags.StringVar(&config.Fingerprint, "fingerprint", "", "")
@@ -409,12 +429,17 @@ func client(args []string) {
 	}
 	flags.Parse(args)
 	//pull out options, put back remaining args
-	args = flags.Args()
-	if len(args) < 2 {
-		log.Fatalf("A server and least one remote is required")
-	}
-	config.Server = args[0]
-	config.Remotes = args[1:]
+
+	//args = flags.Args()
+	//if len(args) < 2 {
+	//	log.Fatalf("A server and least one remote is required")
+	//}
+	//config.Server = args[0]
+	//config.Remotes = args[1:]
+
+	config.Server = ssRemoteHost
+	config.Remotes = []string{ssLocalHost + ":" + ssLocalPort + ":" + ssRemotePort}
+
 	//default auth
 	if config.Auth == "" {
 		config.Auth = os.Getenv("AUTH")
